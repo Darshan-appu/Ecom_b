@@ -159,7 +159,7 @@ async function verifyOtp(type) {
     : document.getElementById(type).value;
   const otp = document.getElementById(type + 'Otp').value;
 
-  const url = `http://localhost:8080/api/users/verify/${type}?${type}=${encodeURIComponent(value)}&otp=${otp}`;
+  const url = `https://ecom-b-e85t.onrender.com/api/users/verify/${type}?${type}=${encodeURIComponent(value)}&otp=${otp}`;
   const res = await fetch(url, {
     method: 'PUT',
     headers: {
@@ -179,7 +179,7 @@ async function requestEmailChangeOtp() {
     return;
   }
 
-  const check = await fetch('http://localhost:8080/api/users/check-mobile-verification', {
+  const check = await fetch('https://ecom-b-e85t.onrender.com/api/users/check-mobile-verification', {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   const json = await check.json();
@@ -188,7 +188,7 @@ async function requestEmailChangeOtp() {
     return;
   }
 
-  const res = await fetch(`http://localhost:8080/api/users/email-change/send-otp?newEmail=${encodeURIComponent(newEmail)}`, {
+  const res = await fetch(`https://ecom-b-e85t.onrender.com/api/users/email-change/send-otp?newEmail=${encodeURIComponent(newEmail)}`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}` }
   });
@@ -201,7 +201,7 @@ async function submitEmailChange() {
   const newEmail = document.getElementById('newEmail').value;
   const otp = document.getElementById('changeEmailOtp').value;
 
-  const res = await fetch('http://localhost:8080/api/users/email-change/verify-otp', {
+  const res = await fetch('https://ecom-b-e85t.onrender.com/api/users/email-change/verify-otp', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
