@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "https://ecom-b-e85t.onrender.com")
 public class UserController {
 
     private final UserService userService;

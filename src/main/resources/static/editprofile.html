@@ -92,7 +92,7 @@ const token = activeRole === "ADMIN"
 
 async function loadUserProfile() {
   try {
-    const res = await fetch('http://localhost:8080/api/users/profile', {
+    const res = await fetch('https://ecom-b-e85t.onrender.com/api/users/profile', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const user = await res.json();
@@ -121,7 +121,7 @@ document.getElementById('editProfileForm').addEventListener('submit', async func
     temporaryAddress: document.getElementById('temporaryAddress').value
   };
 
-  const res = await fetch('http://localhost:8080/api/users/profile', {
+  const res = await fetch('https://ecom-b-e85t.onrender.com/api/users/profile', {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -140,7 +140,7 @@ async function sendOtp(type) {
     ? document.getElementById('currentEmail').value
     : document.getElementById(type).value;
 
-  const url = `http://localhost:8080/api/users/send-otp/${type}?${type}=${encodeURIComponent(value)}`;
+  const url = `https://ecom-b-e85t.onrender.com/api/users/send-otp/${type}?${type}=${encodeURIComponent(value)}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {

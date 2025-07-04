@@ -1,6 +1,6 @@
 // js/frontend-header.js
 
-(function () {
+(function() {
     console.log("✅ frontend-header.js loaded");
 
     const searchCategorySelect = document.getElementById('search-category-select');
@@ -13,7 +13,7 @@
 
     async function loadFrontendCategories() {
         try {
-            const response = await fetch('http://localhost:8080/api/categories');
+            const response = await fetch('https://ecom-b-e85t.onrender.com/api/categories');
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }

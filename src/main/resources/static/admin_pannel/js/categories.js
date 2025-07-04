@@ -1,7 +1,7 @@
 // js/categories.js
 
 // --- Configuration ---
-const API_BASE_URL = 'http://localhost:8080/api/categories'; // Your Spring Boot backend API endpoint
+const API_BASE_URL = 'https://ecom-b-e85t.onrender.com/api/categories'; // Your Spring Boot backend API endpoint
 
 // --- DOM Element References (Ensure these IDs exist in your HTML) ---
 const categoriesTableBody = document.querySelector('#categoriesTable tbody');
@@ -338,9 +338,9 @@ function showAlert(message, type) {
 // Helper function to generate a URL-friendly slug
 function generateSlug(name) {
     return name.toLowerCase()
-               .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric, keep spaces and hyphens
-               .replace(/\s+/g, '-')       // Replace spaces with hyphens
-               .replace(/^-+|-+$/g, '');    // Trim hyphens from start/end
+        .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric, keep spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/^-+|-+$/g, ''); // Trim hyphens from start/end
 }
 
 // --- Admin JWT Authentication Check (Keep your existing check) ---

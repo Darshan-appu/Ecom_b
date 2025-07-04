@@ -16,7 +16,7 @@ public class EmailService {
     // private String senderEmail;
 
     public void sendPasswordResetEmail(String to, String token) {
-        String resetLink = "http://localhost:8080/reset-password.html?token=" + token;
+        String resetLink = "https://ecom-b-e85t.onrender.com/reset-password.html?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("darshantiranga@gmail.com"); // CHANGE THIS TO YOUR ACTUAL SENDER EMAIL

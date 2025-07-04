@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
-@CrossOrigin(origins = "http://localhost:8080,http://127.0.0.1:5500") // IMPORTANT: Be specific in production!
+@CrossOrigin(origins = "https://ecom-b-e85t.onrender.com,http://127.0.0.1:5500") // IMPORTANT: Be specific in production!
 public class CategoryController {
 
     @Autowired
