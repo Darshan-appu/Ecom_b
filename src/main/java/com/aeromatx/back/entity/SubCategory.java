@@ -1,23 +1,21 @@
 package com.aeromatx.back.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
-@Table(name = "categories")
+@Table(name = "subcategories")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+public class SubCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,14 +33,12 @@ public class Category {
     @Column(nullable = false)
     private String status;
 
-    @Column(name = "image_url")
-private String imageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    @JsonBackReference
+    private Category category;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<SubCategory> subCategories = new ArrayList<>();
+    private List<Product> products = new ArrayList<>();
 }
-
-
-
-

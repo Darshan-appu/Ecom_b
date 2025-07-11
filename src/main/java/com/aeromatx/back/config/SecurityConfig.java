@@ -90,6 +90,7 @@ public class SecurityConfig {
 
                 // Permit access to /api/users/by-role for all for now.
                 .requestMatchers("/api/users/by-role").permitAll()
+                .requestMatchers("/uploads/**").permitAll() // ✅ allow image access
 
                 // Specific DELETE endpoint for users (admin only)
                 .requestMatchers(HttpMethod.DELETE, "/api/users/**").permitAll() 
@@ -100,6 +101,7 @@ public class SecurityConfig {
 
                 // All other /api endpoints should require authentication
                 .requestMatchers("/api/**").authenticated()
+                
                 // Any other request that hasn't been matched by previous rules should also be authenticated.
                 .anyRequest().authenticated()
             );

@@ -1,116 +1,71 @@
+// src/main/java/com/aeromatx/back/controller/ProductController.java
 package com.aeromatx.back.controller;
 
-import com.aeromatx.back.dto.product.ProductRequest;
-import com.aeromatx.back.dto.product.ProductResponse;
-import com.aeromatx.back.entity.Product; // Import the entity
+import com.aeromatx.back.dto.product.ProductDTO;
+import com.aeromatx.back.dto.product.ProductResponseDTO;
+import com.aeromatx.back.entity.Product;
+import com.aeromatx.back.repository.ProductRepository;
 import com.aeromatx.back.service.ProductService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.List;
-// import java.util.Optional; // Needed for Optional in getProductById
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/products/admin")
+@CrossOrigin(origins = {"http://localhost:8080", "http://127.0.0.1:5500"})
 public class ProductController {
 
-    private final ProductService productService;
+    @Autowired
+    private ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
+    @Autowired
+    private ProductRepository productRepository;
+
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductResponseDTO>> getAll() {
+        return ResponseEntity.ok(productService.getAllProductDTOs());
     }
 
-    // GET all products
-    @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        // productService.getAllProducts() should return List<Product>
-        List<ProductResponse> products = productService.getAllProducts().stream()
-                .map(this::convertToDto) // Now converts Product entity to ProductResponse DTO
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(products, HttpStatus.OK);
-    }
-
-    // GET product by ID
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        // productService.getProductById(id) should return Optional<Product>
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         return productService.getProductById(id)
-                .map(this::convertToDto) // Now converts Product entity to ProductResponse DTO
-                .map(productDto -> new ResponseEntity<>(productDto, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST create a new product
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest) {
-        // Convert the incoming ProductRequest DTO to a Product entity
-        Product productToCreate = convertToEntity(productRequest);
-        // Pass the Product entity to the service
-        Product createdProduct = productService.createProduct(productToCreate);
-        // Convert the returned Product entity to a ProductResponse DTO
-        return new ResponseEntity<>(convertToDto(createdProduct), HttpStatus.CREATED);
+    public ResponseEntity<Product> add(@RequestBody ProductDTO dto) {
+        return ResponseEntity.ok(productService.createProduct(dto));
     }
 
-    // PUT update an existing product
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest productRequest) {
-        try {
-            // Convert the incoming ProductRequest DTO to a Product entity for update
-            Product productDetails = convertToEntity(productRequest);
-            // Pass the ID and the Product entity to the service
-            Product updatedProduct = productService.updateProduct(id, productDetails);
-            // Convert the returned Product entity to a ProductResponse DTO
-            return new ResponseEntity<>(convertToDto(updatedProduct), HttpStatus.OK);
-        } catch (RuntimeException e) {
-            // More specific exception handling might be preferred here,
-            // e.g., if ProductNotFoundException is thrown by service
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Product> edit(@PathVariable Long id, @RequestBody ProductDTO dto) {
+        return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 
-    // DELETE a product
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteProduct(@PathVariable Long id) {
-        try {
-            productService.deleteProduct(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Void> del(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // --- Corrected Helper methods for DTO conversion ---
-
-    // Converts a Product entity to a ProductResponse DTO
-    private ProductResponse convertToDto(Product product) {
-        if (product == null) {
-            return null;
-        }
-        return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStockQuantity(),
-                product.getImageUrl()
-        );
-    }
-
-    // Converts a ProductRequest DTO to a Product entity
-    private Product convertToEntity(ProductRequest productRequest) {
-        if (productRequest == null) {
-            return null;
-        }
-        Product product = new Product(); // Instantiate your Product entity
-        // product.setId(productRequest.getId()); // Only if ProductRequest has an ID for update scenarios
-        product.setName(productRequest.getName());
-        product.setDescription(productRequest.getDescription());
-        product.setPrice(productRequest.getPrice());
-        product.setStockQuantity(productRequest.getStockQuantity());
-        product.setImageUrl(productRequest.getImageUrl());
-        return product;
+    @PostMapping("/{id}/image")
+    public ResponseEntity<?> uploadProductImage(@PathVariable Long id, @RequestParam("image") MultipartFile file) throws IOException {
+        String originalFileName = file.getOriginalFilename();
+        String cleaned = originalFileName.replaceAll("[^a-zA-Z0-9.\\-_;]", "_");
+        String filename = UUID.randomUUID() + "_" + cleaned;
+        Path imagePath = Paths.get("uploads/products/" + filename);
+        Files.createDirectories(imagePath.getParent());
+        Files.write(imagePath, file.getBytes());
+        Product p = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+        p.setImageUrl("/uploads/products/" + filename);
+        productRepository.save(p);
+        return ResponseEntity.ok("Product image uploaded successfully.");
     }
 }

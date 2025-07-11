@@ -1,12 +1,16 @@
 package com.aeromatx.back.service;
 
+import com.aeromatx.back.dto.product.CategoryDTO;
+import com.aeromatx.back.dto.product.SubCategoryDTO;
 import com.aeromatx.back.entity.Category;
+import com.aeromatx.back.entity.SubCategory;
 import com.aeromatx.back.repository.CategoryRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class CategoryService {
@@ -15,23 +19,23 @@ public class CategoryService {
     private CategoryRepository categoryRepository;
 
     public Category createCategory(Category category) {
-        // You might want to add validation here, e.g., check for unique name/slug
         return categoryRepository.save(category);
     }
 
+    @Transactional(readOnly = true)
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAllWithSubCategories();
     }
 
-    // ✨ NEW METHOD: Get only active categories ✨
     public List<Category> getActiveCategories() {
-        // Assuming "Active" is the exact string used for active categories in your DB.
-        // Make sure it matches the status value you set when creating categories.
-        return categoryRepository.findByStatus("Active"); // Calls the method from CategoryRepository
+        return categoryRepository.findByStatus("Active");
     }
 
+    @Transactional
     public Optional<Category> getCategoryById(Long id) {
-        return categoryRepository.findById(id);
+        Optional<Category> categoryOpt = categoryRepository.findById(id);
+        categoryOpt.ifPresent(category -> category.getSubCategories().size()); // force load
+        return categoryOpt;
     }
 
     public Category updateCategory(Long id, Category updatedCategory) {
@@ -41,15 +45,44 @@ public class CategoryService {
             category.setDescription(updatedCategory.getDescription());
             category.setStatus(updatedCategory.getStatus());
             return categoryRepository.save(category);
-        }).orElseThrow(() -> new RuntimeException("Category not found with id " + id)); // Handle not found appropriately
+        }).orElseThrow(() -> new RuntimeException("Category not found with id " + id));
     }
 
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
 
-    // Optional: Method to check if a category name already exists (for creation/update validation)
     public boolean existsByName(String name) {
         return categoryRepository.findByName(name).isPresent();
     }
+
+    @Transactional(readOnly = true)
+    public CategoryDTO convertToDTO(Category category, boolean includeSubcategories) {
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setSlug(category.getSlug());
+        dto.setDescription(category.getDescription());
+        dto.setStatus(category.getStatus());
+
+        if (includeSubcategories && category.getSubCategories() != null) {
+            List<SubCategoryDTO> subDTOs = new ArrayList<>();
+            for (SubCategory sub : new ArrayList<>(category.getSubCategories())) {
+                subDTOs.add(new SubCategoryDTO(
+                        sub.getId(),
+                        sub.getName(),
+                        sub.getSlug(),
+                        sub.getDescription(),
+                        sub.getStatus(),
+                        sub.getCategory().getId(),
+                        sub.getCategory().getName()
+                ));
+            }
+            dto.setSubCategories(subDTOs);
+        }
+
+        return dto;
+    }
 }
+
+
