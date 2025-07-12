@@ -30,9 +30,17 @@ public class WebConfig implements WebMvcConfigurer {
                 .maxAge(3600); // Max age for preflight requests (in seconds)
     }
 
+    // @Override
+    // public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    //     registry.addResourceHandler("/uploads/**")
+    //         .addResourceLocations("file:uploads/");
+    // }
+
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/uploads/**")
-            .addResourceLocations("file:uploads/");
-    }
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/uploads/**")
+            .addResourceLocations("file:/opt/ecommerce/uploads/")  // absolute!
+            .setCachePeriod(3600);  // optional: 1‑h browser cache
+}
+
 }
