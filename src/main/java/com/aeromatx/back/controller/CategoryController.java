@@ -4,6 +4,8 @@ import com.aeromatx.back.dto.product.CategoryDTO;
 import com.aeromatx.back.entity.Category;
 import com.aeromatx.back.repository.CategoryRepository;
 import com.aeromatx.back.service.CategoryService;
+import com.cloudinary.Cloudinary;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +19,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import com.cloudinary.utils.ObjectUtils;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/categories")
@@ -70,25 +75,23 @@ public class CategoryController {
     }
 
     // ✅ Upload category image with cleaned filename
-    @PostMapping("/admin/{id}/image")
-    public ResponseEntity<?> uploadCategoryImage(
-            @PathVariable Long id,
-            @RequestParam("image") MultipartFile file) throws IOException {
+    @Autowired
+private Cloudinary cloudinary;
 
-        String originalFileName = file.getOriginalFilename();
-        String cleanedFileName = originalFileName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
-        String fileName = UUID.randomUUID() + "_" + cleanedFileName;
+@PostMapping("/admin/{id}/image")
+public ResponseEntity<?> uploadCategoryImage(
+        @PathVariable Long id,
+        @RequestParam("image") MultipartFile file) throws IOException {
 
-        Path imagePath = Paths.get("uploads/categories/" + fileName);
-        Files.createDirectories(imagePath.getParent());
-        Files.write(imagePath, file.getBytes());
+    Category category = categoryRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+    Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+    String imageUrl = (String) uploadResult.get("secure_url");
 
-        category.setImageUrl("/uploads/categories/" + fileName);
-        categoryRepository.save(category);
+    category.setImageUrl(imageUrl);
+    categoryRepository.save(category);
 
-        return ResponseEntity.ok("Image uploaded successfully.");
-    }
+    return ResponseEntity.ok("Image uploaded successfully.");
+}
 }

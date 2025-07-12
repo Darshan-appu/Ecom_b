@@ -6,6 +6,8 @@ import com.aeromatx.back.dto.product.ProductResponseDTO;
 import com.aeromatx.back.entity.Product;
 import com.aeromatx.back.repository.ProductRepository;
 import com.aeromatx.back.service.ProductService;
+import com.cloudinary.Cloudinary;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,9 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.UUID;
+import com.cloudinary.utils.ObjectUtils;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/products/admin")
@@ -55,17 +60,19 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/image")
-    public ResponseEntity<?> uploadProductImage(@PathVariable Long id, @RequestParam("image") MultipartFile file) throws IOException {
-        String originalFileName = file.getOriginalFilename();
-        String cleaned = originalFileName.replaceAll("[^a-zA-Z0-9.\\-_;]", "_");
-        String filename = UUID.randomUUID() + "_" + cleaned;
-        Path imagePath = Paths.get("uploads/products/" + filename);
-        Files.createDirectories(imagePath.getParent());
-        Files.write(imagePath, file.getBytes());
-        Product p = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-        p.setImageUrl("/uploads/products/" + filename);
-        productRepository.save(p);
-        return ResponseEntity.ok("Product image uploaded successfully.");
-    }
+   @Autowired
+private Cloudinary cloudinary;
+
+@PostMapping("/{id}/image")
+public ResponseEntity<?> uploadProductImage(@PathVariable Long id, @RequestParam("image") MultipartFile file) throws IOException {
+    Product p = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+
+    Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+    String imageUrl = (String) uploadResult.get("secure_url");
+
+    p.setImageUrl(imageUrl);
+    productRepository.save(p);
+
+    return ResponseEntity.ok("Product image uploaded successfully.");
+}
 }
